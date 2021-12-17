@@ -1,0 +1,104 @@
+pipeline {
+    agent any
+    options {
+        ansiColor('xterm')
+    }
+
+    stages {
+        stage('GIT Checkout') {
+            steps {
+                git branch: 'master', credentialsId: 'jenkins-docker-images', poll: false, url: 'git@github.com:progresusit/docker-images.git'
+            }
+        }
+
+        stage('== Build Laravel PHP-FPM 8.1') {
+            when { changeset "laravel-php/8.1/fpm/*"}
+            steps {
+                withDockerRegistry(credentialsId: 'ecr:eu-central-1:jenkins-ecr', url: 'https://323798788381.dkr.ecr.eu-central-1.amazonaws.com/progresus-laravel-php') {
+                    script {
+                        sh "make laravel-php-fpm"
+                        def NAME = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%an'").trim()
+                        def MESSAGE = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%s'").trim()
+                        data = """[
+                        {
+                			"color": "#007a5a",
+                			"blocks": [
+                			    {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "${NAME} has released - ${MESSAGE}",
+                                        "emoji": true
+                                    }
+                                },
+                				{
+                					"type": "header",
+                					"text": {
+                						"type": "plain_text",
+                						"text": "progresus-laravel-php:8.1-fpm",
+                						"emoji": true
+                					}
+                				},
+                				{
+                					"type": "section",
+                					"text": {
+                						"type": "mrkdwn",
+                						"text": "New version released :tada:"
+                					}
+                				}
+                			]
+                		}
+                        ]"""
+
+                        slackSend color: 'good', channel:'harmonelo-general', attachments: data
+                    }
+                }
+            }
+        }
+
+        stage('== Build Laravel NGINX') {
+            when { changeset "laravel-nginx/alpine/*"}
+            steps {
+                withDockerRegistry(credentialsId: 'ecr:eu-central-1:jenkins-ecr', url: 'https://323798788381.dkr.ecr.eu-central-1.amazonaws.com/progresus-laravel-nginx') {
+                    script {
+                        sh "make laravel-nginx"
+                        def NAME = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%an'").trim()
+                        def MESSAGE = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%s'").trim()
+                        data = """[
+                        {
+                			"color": "#007a5a",
+                			"blocks": [
+                			    {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "${NAME} has released - ${MESSAGE}",
+                                        "emoji": true
+                                    }
+                                },
+                				{
+                					"type": "header",
+                					"text": {
+                						"type": "plain_text",
+                						"text": "progresus-laravel-nginx:latest",
+                						"emoji": true
+                					}
+                				},
+                				{
+                					"type": "section",
+                					"text": {
+                						"type": "mrkdwn",
+                						"text": "New version released :tada:"
+                					}
+                				}
+                			]
+                		}
+                        ]"""
+
+                        slackSend color: 'good', channel:'harmonelo-general', attachments: data
+                    }
+                }
+            }
+        }
+    }
+}
