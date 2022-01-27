@@ -9,6 +9,8 @@ RUN mkdir -p /usr/src/php/ext/redis \
     && curl -fsSL https://pecl.php.net/get/redis | tar xvz -C "/usr/src/php/ext/redis" --strip 1 \
     && docker-php-ext-install redis
 
+COPY start.sh /usr/local/bin/start
+
 EXPOSE 9000
 ENTRYPOINT ["docker-php-entrypoint"]
-CMD ["php-fpm"]
+CMD ["/usr/local/bin/start"]
