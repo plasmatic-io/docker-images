@@ -100,5 +100,50 @@ pipeline {
                 }
             }
         }
+
+        stage('== Build Laravel NGINX') {
+            when { changeset "apollo-rover/node/*"}
+            steps {
+                withDockerRegistry(credentialsId: 'ecr:eu-central-1:jenkins-ecr', url: 'https://323798788381.dkr.ecr.eu-central-1.amazonaws.com/progresus-apollo-rover') {
+                    script {
+                        sh "make apollo-rover"
+                        def NAME = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%an'").trim()
+                        def MESSAGE = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%s'").trim()
+                        data = """[
+                        {
+                			"color": "#007a5a",
+                			"blocks": [
+                			    {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "${NAME} has released - ${MESSAGE}",
+                                        "emoji": true
+                                    }
+                                },
+                				{
+                					"type": "header",
+                					"text": {
+                						"type": "plain_text",
+                						"text": "progresus-apollo-rover:latest",
+                						"emoji": true
+                					}
+                				},
+                				{
+                					"type": "section",
+                					"text": {
+                						"type": "mrkdwn",
+                						"text": "New version released :tada:"
+                					}
+                				}
+                			]
+                		}
+                        ]"""
+
+                        slackSend color: 'good', channel:'harmonelo-general', attachments: data
+                    }
+                }
+            }
+        }
     }
 }
