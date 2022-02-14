@@ -101,7 +101,7 @@ pipeline {
             }
         }
 
-        stage('== Build Laravel NGINX') {
+        stage('== Build Apollo Rover') {
             when { changeset "apollo-rover/node/*"}
             steps {
                 withDockerRegistry(credentialsId: 'ecr:eu-central-1:jenkins-ecr', url: 'https://323798788381.dkr.ecr.eu-central-1.amazonaws.com/progresus-apollo-rover') {
