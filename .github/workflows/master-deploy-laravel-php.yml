@@ -24,6 +24,7 @@ jobs:
       matrix:
         include:
           - dockerfile: ./laravel-php/8.1/fpm/Dockerfile
+            context: ./laravel-php/8.1/fpm
             image: ghcr.io/plasmatic-io/laravel-php
     permissions:
       contents: read
@@ -38,7 +39,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_PACKAGE_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -49,7 +50,7 @@ jobs:
       - name: Build and push Docker image Drill4Net.Agent.Service
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
