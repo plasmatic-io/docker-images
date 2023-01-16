@@ -26,6 +26,9 @@ jobs:
           - dockerfile: ./laravel-php/8.1/fpm/Dockerfile
             context: ./laravel-php/8.1/fpm
             image: ghcr.io/plasmatic-io/laravel-php
+          - dockerfile: ./laravel-nginx/alpine/Dockerfile
+            context: ./laravel-nginx/alpine
+            image: ghcr.io/plasmatic-io/laravel-nginx
     permissions:
       contents: read
       packages: write
@@ -47,7 +50,7 @@ jobs:
         with:
           images: ${{ matrix.image }}
 
-      - name: Build and push Docker image Drill4Net.Agent.Service
+      - name: Build and push Docker images
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: ${{ matrix.context }}
